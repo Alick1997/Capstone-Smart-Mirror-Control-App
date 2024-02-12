@@ -4,7 +4,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import colors from 'tailwindcss/colors'
 import {LinearGradient} from 'expo-linear-gradient'
 import Footer from "../components/footer"
-import MapView from "react-native-maps"
+import MapView, { Marker } from "react-native-maps"
 import { MirrorConnectionContext } from "../mirrorStateContext"
 
 export default function Page() {
@@ -53,7 +53,19 @@ export default function Page() {
             <Text className="text-black text-3xl font-bold">Hello, Alick.</Text>
             { state.connected ?
                 <>
-                    <MapView  className="flex-1 w-full" />
+                    <MapView
+                    region={{
+                        latitude: 43.657759,
+                        longitude: -79.380650,
+                        latitudeDelta: 0.0022,
+                        longitudeDelta: 0.0021
+                    }}
+                    className="flex-1 w-full" >
+                        <Marker coordinate={{  
+                        latitude: 43.657759,
+                        longitude: -79.380650
+                        }} />
+                    </MapView>
                     <FlatList 
                     style = {{alignSelf:'center'}}
                     columnWrapperStyle = {styles.columnStyle}
