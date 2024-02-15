@@ -4,7 +4,8 @@ import { MirrorContextType, MirrorState } from "./types";
 export const defaultMirrorStateValue: MirrorState = {
     connected: false,
     lastConnected: new Date(),
-    isMirrorOn: false
+    isMirrorOn: false,
+    device: undefined
 }
 
 export const MirrorConnectionContext = createContext<MirrorContextType>({

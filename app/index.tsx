@@ -4,12 +4,14 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import colors from 'tailwindcss/colors'
 import {LinearGradient} from 'expo-linear-gradient'
 import Footer from "../components/footer"
-import MapView from "react-native-maps"
+import MapView, { Marker } from "react-native-maps"
 import { MirrorConnectionContext } from "../mirrorStateContext"
+import { Link } from "expo-router"
+import ConnectedDevice from "../components/connectedDevice"
 
 export default function Page() {
     
-    const {state, setMirrorConnection} = useContext(MirrorConnectionContext)
+    const { state } = useContext(MirrorConnectionContext)
 
     const data = [
         {
@@ -51,9 +53,22 @@ export default function Page() {
     return (
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
             <Text className="text-black text-3xl font-bold">Hello, Alick.</Text>
-            { state.connected ?
+            { state.device ?
                 <>
-                    <MapView  className="flex-1 w-full" />
+                <ConnectedDevice device={state.device} /> 
+                    <MapView
+                    region={{
+                        latitude: 43.657759,
+                        longitude: -79.380650,
+                        latitudeDelta: 0.0022,
+                        longitudeDelta: 0.0021
+                    }}
+                    className="flex-1 w-full" >
+                        <Marker coordinate={{  
+                        latitude: 43.657759,
+                        longitude: -79.380650
+                        }} />
+                    </MapView>
                     <FlatList 
                     style = {{alignSelf:'center'}}
                     columnWrapperStyle = {styles.columnStyle}
@@ -73,9 +88,11 @@ export default function Page() {
                 </> :
                 <View style = {{flex:1, alignItems:'center', width:'100%', justifyContent:'center'}}>
                     <Text className="font-bold text-center">Connect Your Phone to keep data up to date</Text>
-                    <TouchableOpacity onPress={()=> setMirrorConnection(!state.connected)} className="flex-row rounded bg-blue-700 p-4 items-center my-2">
-                        <Text className="text-white text-xl mr-6">Connect With Bluetooth</Text>
-                        <FontAwesome5 name = 'bluetooth' color = {colors.white} size = {20} />
+                    <TouchableOpacity className="my-2">
+                        <Link href={'/bleConn'} className="flex-row rounded bg-blue-700 p-4 items-center">
+                            <Text className="text-white text-xl mr-6">Connect With Bluetooth</Text>
+                            <FontAwesome5 name = 'bluetooth' color = {colors.white} size = {20} />
+                        </Link>
                     </TouchableOpacity>
                     <Text>Last Synchronized: {state?.lastConnected?.toLocaleString()}</Text>
                 </View>
