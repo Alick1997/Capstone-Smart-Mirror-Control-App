@@ -24,10 +24,10 @@ export function scanAvailableMirrors(callback: (dev: Device) => void, errorCallb
         if(e) {
             errorCallback(e)
         }
-
-        if(dev?.name?.includes("smartMirror")) {
+        if(dev) {
             callback(dev)
         }
+        
     })
 }
 

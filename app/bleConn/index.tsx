@@ -2,30 +2,41 @@ import React, { useContext, useEffect, useState } from "react";
 import { Text, View, StyleSheet, Pressable, FlatList } from "react-native";
 import { manager } from "../../utils/bleManager";
 import { MirrorConnectionContext } from "../../mirrorStateContext";
-import { MIRROR_AUTH_SERVICE_ID, MIRROR_DATA_SERVICE_ID, scanAvailableMirrors } from "../../utils/bleManager";
+import { scanAvailableMirrors } from "../../utils/bleManager";
 import {LinearGradient} from 'expo-linear-gradient'
 import colors from 'tailwindcss/colors'
 import { Device } from "react-native-ble-plx";
-//import { FlashList } from '@shopify/flash-list'
+import ConnectedDevice from "../../components/connectedDevice";
+import AnimatedSpinner from "../../components/animatedSpinner";
+import Button from "../../components/Button";
+import { Link, router } from "expo-router";
 
 export default function BleConn(): React.ReactElement {
 
     const { state, setMirrorConnection } = useContext(MirrorConnectionContext)
-    const connected = manager.connectedDevices([MIRROR_AUTH_SERVICE_ID, MIRROR_DATA_SERVICE_ID])
     const [deviceOptions, setDeviceOptions] = useState<Device[]>([])
-    const [fetcherState, setFetcherState] = useState<"idle" | "scanning">("idle")
+    const [fetcherState, setFetcherState] = useState<"idle" | "scanning">("scanning")
 
     async function connectToDevice(device: Device) {
         try{
             await connectToDevice(device)
             setMirrorConnection(device)
+            manager.stopDeviceScan()
+            setFetcherState("idle")
+            router.replace('/')
         } catch(e) {
             alert(e)
         }
     }
+
     useEffect(()=>{
         scanAvailableMirrors((dev)=> {
-            setDeviceOptions([...deviceOptions, dev])
+            if(deviceOptions.some(device=> device.id === dev.id)) {
+                return
+            }
+            const newArr = deviceOptions
+            newArr.push(dev)
+            setDeviceOptions(newArr)
         }, e => alert(e))
     },[])
 
@@ -33,7 +44,7 @@ export default function BleConn(): React.ReactElement {
 
         return (
             <Pressable className="rounded bg-blue-600 p-2 w-full" onPress = {()=> connectToDevice(item)}>
-                <Text>{item.name}</Text>
+                <Text>{item.name ?? item.localName}</Text>
             </Pressable>
         )
     }
@@ -41,10 +52,29 @@ export default function BleConn(): React.ReactElement {
     return(
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
             <Text className="text-black text-3xl font-bold">Connect To Your Mirror</Text>
+            {
+                fetcherState === "scanning" &&
+                <View>
+                    <AnimatedSpinner />
+                    <Text>Scanning...</Text>
+                </View>
+            }
+                {
+                    state.device ?
+                    <ConnectedDevice device={state.device} /> :
+                    <View className="rounded bg-blue-600 w-full p-2 text-white">
+                        <Text>No Device Connected</Text>
+                    </View>
+                }
             <FlatList 
             data = {deviceOptions}
             renderItem={renderItems}
             />
+            <Link replace href = '/'>
+                <Button>
+                    Go Back
+                </Button>
+            </Link>
         </LinearGradient>
     )
 }

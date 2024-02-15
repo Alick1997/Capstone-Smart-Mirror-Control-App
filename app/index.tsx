@@ -7,6 +7,7 @@ import Footer from "../components/footer"
 import MapView, { Marker } from "react-native-maps"
 import { MirrorConnectionContext } from "../mirrorStateContext"
 import { Link } from "expo-router"
+import ConnectedDevice from "../components/connectedDevice"
 
 export default function Page() {
     
@@ -52,8 +53,9 @@ export default function Page() {
     return (
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
             <Text className="text-black text-3xl font-bold">Hello, Alick.</Text>
-            { state.connected ?
+            { state.device ?
                 <>
+                <ConnectedDevice device={state.device} /> 
                     <MapView
                     region={{
                         latitude: 43.657759,
