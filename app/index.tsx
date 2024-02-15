@@ -6,10 +6,11 @@ import {LinearGradient} from 'expo-linear-gradient'
 import Footer from "../components/footer"
 import MapView, { Marker } from "react-native-maps"
 import { MirrorConnectionContext } from "../mirrorStateContext"
+import { Link } from "expo-router"
 
 export default function Page() {
     
-    const {state, setMirrorConnection} = useContext(MirrorConnectionContext)
+    const { state } = useContext(MirrorConnectionContext)
 
     const data = [
         {
@@ -85,9 +86,11 @@ export default function Page() {
                 </> :
                 <View style = {{flex:1, alignItems:'center', width:'100%', justifyContent:'center'}}>
                     <Text className="font-bold text-center">Connect Your Phone to keep data up to date</Text>
-                    <TouchableOpacity onPress={()=> setMirrorConnection(!state.connected)} className="flex-row rounded bg-blue-700 p-4 items-center my-2">
-                        <Text className="text-white text-xl mr-6">Connect With Bluetooth</Text>
-                        <FontAwesome5 name = 'bluetooth' color = {colors.white} size = {20} />
+                    <TouchableOpacity className="my-2">
+                        <Link href={'/bleConn'} className="flex-row rounded bg-blue-700 p-4 items-center">
+                            <Text className="text-white text-xl mr-6">Connect With Bluetooth</Text>
+                            <FontAwesome5 name = 'bluetooth' color = {colors.white} size = {20} />
+                        </Link>
                     </TouchableOpacity>
                     <Text>Last Synchronized: {state?.lastConnected?.toLocaleString()}</Text>
                 </View>
