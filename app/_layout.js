@@ -46,6 +46,21 @@ export default function MainLayout() {
         initBle()
     },[])
 
+    useEffect(()=>{
+        if(mirrorState.device) {
+            const sub = manager.onDeviceDisconnected(mirrorState.device.id,
+                (e, dev) => {
+                    if(e) {
+                        console.log(e)
+                    }
+                    updateMirrorConnectionState(null)
+                })
+            return () => {
+                sub()
+            }
+        }
+    },[mirrorState])
+
     return (
         <SafeAreaView className = "flex-1 flex-col items-center" edges={['top', 'left', 'right']}>
             <MirrorConnectionContext.Provider value={{state: mirrorState, setMirrorConnection: updateMirrorConnectionState, setMirrorPower: updateMirrorPowerState}}>

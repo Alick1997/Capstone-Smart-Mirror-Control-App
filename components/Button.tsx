@@ -14,16 +14,19 @@ const Button: React.FC<Props> = (props) => {
 
     if(props.loading) {
         return (
-            <TouchableOpacity {...purgeProps(props)} >
+            <TouchableOpacity className={buttonClass} {...purgeProps(props)} >
                 <AnimatedSpinner />
             </TouchableOpacity>
         )
     }
     return (
        <TouchableOpacity 
+       className={buttonClass}
         {...props}
        />
     )
 }
 
 export default Button
+
+const buttonClass = "bg-blue-700 rounded p-4 m-2 items-center"

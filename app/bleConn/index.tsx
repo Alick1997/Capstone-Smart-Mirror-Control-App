@@ -9,7 +9,7 @@ import { Device } from "react-native-ble-plx";
 import ConnectedDevice from "../../components/connectedDevice";
 import AnimatedSpinner from "../../components/animatedSpinner";
 import Button from "../../components/Button";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 
 export default function BleConn(): React.ReactElement {
 
@@ -29,15 +29,25 @@ export default function BleConn(): React.ReactElement {
         }
     }
 
-    useEffect(()=>{
+    function scanDevices() {
         scanAvailableMirrors((dev)=> {
+            
             if(deviceOptions.some(device=> device.id === dev.id)) {
                 return
             }
+
             const newArr = deviceOptions
             newArr.push(dev)
             setDeviceOptions(newArr)
-        }, e => alert(e))
+        }, e => {
+            alert(e)
+            manager.stopDeviceScan()
+            setFetcherState("idle")
+        })
+    }
+
+    useEffect(()=>{
+        scanDevices()
     },[])
 
     function renderItems({item}: {item: Device}) {
@@ -51,30 +61,27 @@ export default function BleConn(): React.ReactElement {
     
     return(
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
-            <Text className="text-black text-3xl font-bold">Connect To Your Mirror</Text>
-            {
-                fetcherState === "scanning" &&
-                <View>
-                    <AnimatedSpinner />
-                    <Text>Scanning...</Text>
-                </View>
+            <Text className="text-black text-3xl font-bold flex-1">Connect To Your Mirror</Text>
+            {state.device ?
+                <ConnectedDevice device={state.device} /> :
+                <>
+                    {
+                        fetcherState === "scanning" ?
+                        <View>
+                            <AnimatedSpinner />
+                            <Text>Scanning...</Text>
+                        </View>
+                        :
+                        <Button onPress = {scanDevices}>
+                            <Text className="text-white">Start Scanning</Text>
+                        </Button>
+                    }
+                    <FlatList 
+                    data = {deviceOptions}
+                    renderItem={renderItems}
+                    />
+                </>
             }
-                {
-                    state.device ?
-                    <ConnectedDevice device={state.device} /> :
-                    <View className="rounded bg-blue-600 w-full p-2 text-white">
-                        <Text>No Device Connected</Text>
-                    </View>
-                }
-            <FlatList 
-            data = {deviceOptions}
-            renderItem={renderItems}
-            />
-            <Link replace href = '/'>
-                <Button>
-                    Go Back
-                </Button>
-            </Link>
         </LinearGradient>
     )
 }
@@ -83,5 +90,5 @@ const styles = StyleSheet.create({
     columnStyle: {marginHorizontal:2, marginVertical:7, alignContent:'center'},
     halfThumbnailStyle: {width:'47%', marginHorizontal:2},
     fullThumbnailStyle: {width:'100%'},
-    containerStyle: {flex:1, flexDirection:'column', alignItems:'center', alignContent:'center', width:'100%'}
+    containerStyle: {flex:1, flexDirection:'column', alignItems:'center', alignContent:'center', width:'100%', paddingBottom:20}
 })
