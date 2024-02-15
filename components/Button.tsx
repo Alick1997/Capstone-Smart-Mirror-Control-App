@@ -1,6 +1,5 @@
 import { ComponentProps } from "react"
-import { TouchableOpacity } from "react-native"
-import AnimatedSpinner from "./animatedSpinner"
+import { ActivityIndicator, TouchableOpacity } from "react-native"
 
 interface Props extends ComponentProps<typeof TouchableOpacity> {
     loading?: boolean
@@ -15,7 +14,7 @@ const Button: React.FC<Props> = (props) => {
     if(props.loading) {
         return (
             <TouchableOpacity className={buttonClass} {...purgeProps(props)} >
-                <AnimatedSpinner />
+                <ActivityIndicator />
             </TouchableOpacity>
         )
     }

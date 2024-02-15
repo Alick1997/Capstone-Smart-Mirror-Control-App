@@ -2,6 +2,7 @@ import { View, Text } from "react-native"
 import { Device } from "react-native-ble-plx"
 import { useState } from "react";
 import Button from "./Button";
+import { manager } from "../utils/bleManager";
 
 type Props = {
     device: Device;
@@ -15,19 +16,20 @@ const ConnectedDevice: React.FC<Props> = ({device, className}) => {
     async function disconnect() {
         try{
             setState("pending")
-            await device.cancelConnection()
+            await manager.cancelDeviceConnection(device.id)
         } catch(e) {
-            alert("Error disconnecting from device" + e)
+            alert("Error disconnecting from device")
         } finally {
             setState("idle")
         }
     }
 
     return(
-        <View className={"w-full bg-blue-700 p-2 flex items-center " + className}>
-            <Text>{device.name}</Text>
-            <Button onPress = {disconnect} loading = {state === "pending"} className="bg-red rounded w-full items-center text-white p-4">
-                <Text>Disconnect</Text>
+        <View className={"bg-blue-700 p-4 flex items-center mb-2 mx-2 w-full " + className}>
+            <Text className="text-white font-bold text-2xl">Connected</Text>
+            <Text className="text-white text-2xl">{device?.name ?? device?.localName}</Text>
+            <Button onPress = {disconnect} loading = {state === "pending"} className="bg-red-500 rounded w-full items-center text-white p-4">
+                <Text className="text-white">Disconnect</Text>
             </Button>
         </View>
     )

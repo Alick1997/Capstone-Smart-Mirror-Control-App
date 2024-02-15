@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Text, View, StyleSheet, Pressable, FlatList } from "react-native";
+import { Text, View, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
 import { manager } from "../../utils/bleManager";
 import { MirrorConnectionContext } from "../../mirrorStateContext";
-import { scanAvailableMirrors } from "../../utils/bleManager";
+import { scanAvailableMirrors, attemptConnectToMirror } from "../../utils/bleManager";
 import {LinearGradient} from 'expo-linear-gradient'
 import colors from 'tailwindcss/colors'
 import { Device } from "react-native-ble-plx";
 import ConnectedDevice from "../../components/connectedDevice";
-import AnimatedSpinner from "../../components/animatedSpinner";
 import Button from "../../components/Button";
 import { router } from "expo-router";
 
@@ -15,30 +14,39 @@ export default function BleConn(): React.ReactElement {
 
     const { state, setMirrorConnection } = useContext(MirrorConnectionContext)
     const [deviceOptions, setDeviceOptions] = useState<Device[]>([])
-    const [fetcherState, setFetcherState] = useState<"idle" | "scanning">("scanning")
+    const [fetcherState, setFetcherState] = useState<"idle" | "scanning" | "connecting">(state.device ? 'idle' : 'scanning')
+    const [deviceConn, setDeviceConn] = useState<Device | null>(null)
 
     async function connectToDevice(device: Device) {
         try{
-            await connectToDevice(device)
+            setFetcherState("connecting")
+            setDeviceConn(device)
+            await attemptConnectToMirror(device.id)
             setMirrorConnection(device)
             manager.stopDeviceScan()
-            setFetcherState("idle")
             router.replace('/')
         } catch(e) {
             alert(e)
+            setDeviceConn(null)
+        } finally {
+            setFetcherState("idle")
         }
     }
 
-    function scanDevices() {
-        scanAvailableMirrors((dev)=> {
-            
-            if(deviceOptions.some(device=> device.id === dev.id)) {
-                return
-            }
+    function setStateWithTimeout(newState: Device[]) {
+        setTimeout(()=>{
+            setDeviceOptions(newState)
+        },500)
+    }
 
-            const newArr = deviceOptions
-            newArr.push(dev)
-            setDeviceOptions(newArr)
+    function scanDevices() {
+        scanAvailableMirrors( async (dev)=> {
+            setDeviceOptions(prevOptions => {
+                if(prevOptions.some(device=> device.id === dev.id)) {
+                    return prevOptions
+                }
+                return[...prevOptions, dev]
+            })
         }, e => {
             alert(e)
             manager.stopDeviceScan()
@@ -47,40 +55,46 @@ export default function BleConn(): React.ReactElement {
     }
 
     useEffect(()=>{
-        scanDevices()
+        if(!state.device) {
+            scanDevices()
+        }
     },[])
 
     function renderItems({item}: {item: Device}) {
 
         return (
-            <Pressable className="rounded bg-blue-600 p-2 w-full" onPress = {()=> connectToDevice(item)}>
-                <Text>{item.name ?? item.localName}</Text>
-            </Pressable>
+            <TouchableOpacity className="rounded bg-blue-600 p-4 w-full my-2" onPress = {()=> connectToDevice(item)}>
+                <Text className="text-xl text-white">{item.name ?? item.localName}</Text>
+            </TouchableOpacity>
         )
     }
     
     return(
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
-            <Text className="text-black text-3xl font-bold flex-1">Connect To Your Mirror</Text>
-            {state.device ?
+            <Text className="text-black text-3xl font-bold">Connect To Your Mirror</Text>
+            { state.device ?
                 <ConnectedDevice device={state.device} /> :
-                <>
-                    {
-                        fetcherState === "scanning" ?
-                        <View>
-                            <AnimatedSpinner />
-                            <Text>Scanning...</Text>
-                        </View>
-                        :
-                        <Button onPress = {scanDevices}>
-                            <Text className="text-white">Start Scanning</Text>
-                        </Button>
-                    }
+                fetcherState === "connecting" ? 
+                <View style = {{flex:1, alignItems:'center', justifyContent:'center'}}>
+                    <ActivityIndicator />
+                    <Text className="text-2xl">Connecting to {deviceConn?.name || deviceConn?.localName}</Text>
+                </View> :
+                fetcherState === 'idle' ?
+                <Button onPress = {scanDevices}>
+                    <Text className="text-white">Start Scanning</Text>
+                </Button> :
+                fetcherState === "scanning" ?
+                <View style = {{flex:1, alignItems:'center'}}>
+                    <View>
+                        <ActivityIndicator />
+                        <Text>Scanning for devices...</Text>
+                    </View>
                     <FlatList 
+                    style = {{flex:1}}
                     data = {deviceOptions}
                     renderItem={renderItems}
                     />
-                </>
+                </View> : null
             }
         </LinearGradient>
     )

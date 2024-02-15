@@ -18,13 +18,17 @@ export async function getDevices(identifiers: string[]): Promise<Device[]> {
     }
 }
 
+function isStringNonEmpty(input?: string | null): boolean {
+    return Boolean(input?.trim()?.length)
+}
+
 export function scanAvailableMirrors(callback: (dev: Device) => void, errorCallback: (e: BleError) => void) {
 
     manager.startDeviceScan(null, null, async (e, dev) => {
         if(e) {
             errorCallback(e)
         }
-        if(dev) {
+        if(dev && (isStringNonEmpty(dev.name) || isStringNonEmpty(dev.localName)) ) {
             callback(dev)
         }
         
@@ -32,11 +36,13 @@ export function scanAvailableMirrors(callback: (dev: Device) => void, errorCallb
 }
 
 export async function attemptConnectToMirror(devId: DeviceId): Promise<Device> {
-    let servicesFound =0
+   //let servicesFound =0
     const device = await manager.connectToDevice(devId)
     await device.discoverAllServicesAndCharacteristics()
 
-    device.serviceUUIDs?.forEach(service=> {
+  /** Block will ensure connected device contains required services.
+   * toDo: Reenable when bluetooth on mirror is operational
+      device.serviceUUIDs?.forEach(service=> {
         if(service === MIRROR_AUTH_SERVICE_ID || service === MIRROR_DATA_SERVICE_ID) {
             servicesFound++
         }
@@ -44,7 +50,7 @@ export async function attemptConnectToMirror(devId: DeviceId): Promise<Device> {
 
     if(servicesFound < 2)
         throw new Error("Device has invalid bluetooth services.")
-
+*/
     return device
 }
 
