@@ -5,19 +5,35 @@ import { MirrorConnectionContext, defaultMirrorStateValue } from "../mirrorState
 import { useState, useEffect } from "react";
 import { manager, requestAllPermissionsForBle } from "../utils/bleManager";
 import { State } from "react-native-ble-plx";
+import * as Location from 'expo-location';
 
 export default function MainLayout() {
 
     const [mirrorState, setMirrorState] = useState(defaultMirrorStateValue)
 
-    function updateMirrorConnectionState(device) {
+    async function updateMirrorConnectionState(device) {
+
+        if(!device) {
+            setMirrorState({
+                ...mirrorState,
+                connected: false,
+                device: null,
+                isMirrorOn: false,
+                location: undefined
+            })
+            return
+        }
+        const location = await getUserLocation()
+        
         setMirrorState({
             ...mirrorState,
             connected: true,
             device,
             lastConnected: new Date(),
-            isMirrorOn: false
+            isMirrorOn: false,
+            location: location.coords
         })
+
     }
 
     function updateMirrorPowerState(isMirrorOn) {
@@ -25,6 +41,20 @@ export default function MainLayout() {
             ...mirrorState,
             isMirrorOn
         })
+    }
+
+    async function getUserLocation() {
+        try{
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            console.log(status)
+            if (status !== 'granted') {
+              alert('Permission to access location was denied');
+              return;
+            }
+            return await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+        } catch(e) {
+            alert('error getting Location')
+        }
     }
 
     async function initBle() {
@@ -38,7 +68,7 @@ export default function MainLayout() {
             }
 
         } catch(e) {
-
+            console.log(e)
         }
     }
 

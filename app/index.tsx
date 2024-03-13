@@ -1,5 +1,5 @@
 import { useState, useContext } from "react"
-import { Text, View, FlatList, StyleSheet, StyleProp, ViewStyle, Pressable, Button, TouchableOpacity } from "react-native"
+import { Text, View, FlatList, StyleSheet, StyleProp, ViewStyle, Pressable, TouchableOpacity } from "react-native"
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import colors from 'tailwindcss/colors'
 import {LinearGradient} from 'expo-linear-gradient'
@@ -56,19 +56,25 @@ export default function Page() {
             { state.device ?
                 <>
                 <ConnectedDevice device={state.device} /> 
-                    <MapView
+                    {
+                        state.location?.latitude && state.location.longitude ?
+                        <MapView
                     region={{
-                        latitude: 43.657759,
-                        longitude: -79.380650,
+                        latitude: state.location.latitude,
+                        longitude: state.location.longitude,
                         latitudeDelta: 0.0022,
                         longitudeDelta: 0.0021
                     }}
                     className="flex-1 w-full" >
                         <Marker coordinate={{  
-                        latitude: 43.657759,
-                        longitude: -79.380650
+                        latitude: state.location.latitude,
+                        longitude: state.location.longitude
                         }} />
-                    </MapView>
+                    </MapView> :
+                    <View className="flex-1 w-full">
+                        <Text>No location Provided</Text>
+                    </View>
+                }
                     <FlatList 
                     style = {{alignSelf:'center'}}
                     columnWrapperStyle = {styles.columnStyle}

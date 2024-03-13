@@ -33,12 +33,6 @@ export default function BleConn(): React.ReactElement {
         }
     }
 
-    function setStateWithTimeout(newState: Device[]) {
-        setTimeout(()=>{
-            setDeviceOptions(newState)
-        },500)
-    }
-
     function scanDevices() {
         scanAvailableMirrors( async (dev)=> {
             setDeviceOptions(prevOptions => {
