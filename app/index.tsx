@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { Text, View, FlatList, StyleSheet, StyleProp, ViewStyle, Pressable, TouchableOpacity } from "react-native"
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import colors from 'tailwindcss/colors'
@@ -8,10 +8,28 @@ import MapView, { Marker } from "react-native-maps"
 import { MirrorConnectionContext } from "../mirrorStateContext"
 import { Link } from "expo-router"
 import ConnectedDevice from "../components/connectedDevice"
+import { getUserCalendarEvents } from "./_layout"
+import { Event } from "../types"
 
 export default function Page() {
     
     const { state } = useContext(MirrorConnectionContext)
+    const [events, setEvents] = useState<Event[]>([])
+
+    async function getEvents() {
+        const eventsRes = await getUserCalendarEvents()
+        setEvents(eventsRes ?? [])
+    }
+
+    useEffect(()=>{
+        getEvents()
+    },[])
+    const event = events.length > 0 ? events[0] :
+    {
+        title: 'TEST',
+        location: 'TEST',
+        startDate: '2 PM'
+    }
 
     const data = [
         {
@@ -29,9 +47,9 @@ export default function Page() {
             title: 'Calendar', 
             body:
             <>
-                <Text className="text-white">COE70B - 011 - LAB</Text>
-                <Text className="text-white">ENG311</Text>
-                <Text className="text-white">2 PM</Text>
+                <Text className="text-white">{event.title}</Text>
+                <Text className="text-white">{event.location}</Text>
+                <Text className="text-white">{typeof event.startDate === 'string' ? new Date(event.startDate).toLocaleString() : event.startDate.toLocaleString()}</Text>
             </>,
             icon: <FontAwesome5 name = 'square' size={24} color="white"  />,
             enabled: true,
@@ -103,6 +121,24 @@ export default function Page() {
                     <Text>Last Synchronized: {state?.lastConnected?.toLocaleString()}</Text>
                 </View>
         }
+            <>
+            <FlatList 
+                    style = {{alignSelf:'center'}}
+                    columnWrapperStyle = {styles.columnStyle}
+                    horizontal={false}
+                    numColumns={2}
+                    data = {data}
+                    className="space-x-2"
+                    renderItem={item=> 
+                    <Thumbnail 
+                        title = {item.item.title}
+                        body = {item.item.body}
+                        enabled = {item.item.enabled}
+                        icon = {item.item.icon}
+                        style={item.item.style}
+                        />}
+                    /> 
+            </>
             <Footer />
         </LinearGradient>
     )

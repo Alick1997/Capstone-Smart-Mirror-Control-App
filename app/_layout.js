@@ -6,6 +6,27 @@ import { useState, useEffect } from "react";
 import { manager, requestAllPermissionsForBle } from "../utils/bleManager";
 import { State } from "react-native-ble-plx";
 import * as Location from 'expo-location';
+import * as Calendar from 'expo-calendar';
+
+export async function getUserCalendarEvents() {
+    try {
+        const { status } = await Calendar.requestCalendarPermissionsAsync()
+        const remindersStat = await Calendar.requestRemindersPermissionsAsync()
+        if(status !== 'granted' || remindersStat.status !== 'granted') {
+            alert('Permission to calendar was denied')
+            return
+        }
+        const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
+        const calendarIds = calendars.map(cal => cal.id)
+        const now = new Date()
+        const tm = new Date(now)
+        tm.setDate(now.getDate() + 1)
+        return await Calendar.getEventsAsync(calendarIds, now,tm )
+    } catch(e) {
+        console.log(e)
+        alert('Error retreiving calendar events')
+    }
+}
 
 export default function MainLayout() {
 
@@ -19,19 +40,21 @@ export default function MainLayout() {
                 connected: false,
                 device: null,
                 isMirrorOn: false,
-                location: undefined
+                location: undefined,
+                events: []
             })
             return
         }
         const location = await getUserLocation()
-        
+        const events = await getUserCalendarEvents()
         setMirrorState({
             ...mirrorState,
             connected: true,
             device,
             lastConnected: new Date(),
             isMirrorOn: false,
-            location: location.coords
+            location: location.coords,
+            events
         })
 
     }
@@ -46,7 +69,6 @@ export default function MainLayout() {
     async function getUserLocation() {
         try{
             const { status } = await Location.requestForegroundPermissionsAsync();
-            console.log(status)
             if (status !== 'granted') {
               alert('Permission to access location was denied');
               return;

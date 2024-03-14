@@ -1,6 +1,8 @@
 PODS:
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
+  - EXCalendar (12.2.1):
+    - ExpoModulesCore
   - EXConstants (15.4.5):
     - ExpoModulesCore
   - EXFont (11.10.2):
@@ -1101,6 +1103,7 @@ PODS:
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXCalendar (from `../node_modules/expo-calendar/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXLocation (from `../node_modules/expo-location/ios`)
@@ -1177,6 +1180,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXCalendar:
+    :path: "../node_modules/expo-calendar/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXFont:
@@ -1302,6 +1307,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
+  EXCalendar: 93cc0af8a143e9fce72b2451e058779bb270f9f1
   EXConstants: 988aa430ca0f76b43cd46b66e7fae3287f9cc2fc
   EXFont: 21b9c760abd593ce8f0d5386b558ced76018506f
   EXLocation: a631bd8dc4e7db986fb27edb7fc9ea8174ebe249
