@@ -39,3 +39,20 @@ export type Reminder = {
     title?: string;
     url?: string;
 }
+
+export type Weather = {
+    lat: number;
+    lon: number;
+    main: {
+        temp: number,
+        feels_like: number,
+        temp_min: number,
+        temp_max: number,
+        humidity: number,
+      };
+      weather: {
+        id: number,
+        main: string,
+        description: string,
+      }[]
+}

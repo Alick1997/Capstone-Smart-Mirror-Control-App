@@ -9,13 +9,15 @@ import { MirrorConnectionContext } from "../mirrorStateContext"
 import { Link } from "expo-router"
 import ConnectedDevice from "../components/connectedDevice"
 import { getUserCalendarEvents } from "./_layout"
-import { Event, Reminder } from "../types"
+import { Event, Reminder, Weather } from "../types"
+import { OPEN_WEATHER_API_KEY } from "../config"
 
 export default function Page() {
     
     const { state } = useContext(MirrorConnectionContext)
     const [events, setEvents] = useState<Event[]>([])
     const [reminders, setReminders] = useState<Reminder[]>([])
+    const [weather, setWeather] = useState<Weather>()
 
     async function getEvents() {
         const res = await getUserCalendarEvents()
@@ -23,10 +25,29 @@ export default function Page() {
         setReminders(res?.reminders ?? [])
     }
 
+    async function getWeather() {
+        try{
+        if(state.location?.latitude && state.location.longitude){
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${state.location.latitude}&lon=${state.location.longitude}&exclude={part}&appid=${OPEN_WEATHER_API_KEY}&units=metric`)
+        if(res.status === 200) {
+            const weatherData = await res.json() as Weather
+            setWeather(weatherData)
+        }
+
+        }
+    } catch(e) {
+        console.log(e)
+    }
+    }
+
     useEffect(()=>{
         getEvents()
     },[])
-    
+
+    useEffect(()=>{
+        getWeather()
+    },[state])
+
     const event = events.length > 0 ? events[0] :
     {
         title: 'No Events',
@@ -46,13 +67,14 @@ export default function Page() {
         url: ''
     }
 
+
     const data = [
         {
             title: 'Weather', 
             body:
             <>
-                <Text className="text-white">-2 C</Text>
-                <Text className="text-white">Overcast</Text>
+                <Text className="text-white">{weather?.main.feels_like ?? 'No temp'} C</Text>
+                <Text className="text-white">{weather?.weather[0].description}</Text>
             </>,
             icon: <FontAwesome5 name="cloud-sun-rain" size={24} color="white" />,
             enabled: true,
@@ -141,25 +163,7 @@ export default function Page() {
                     <Text>Last Synchronized: {state?.lastConnected?.toLocaleString()}</Text>
                 </View>
         }
-            <>
-            <FlatList 
-                    style = {{alignSelf:'center'}}
-                    columnWrapperStyle = {styles.columnStyle}
-                    horizontal={false}
-                    numColumns={2}
-                    data = {data}
-                    className="space-x-2"
-                    renderItem={item=> 
-                    <Thumbnail 
-                        title = {item.item.title}
-                        body = {item.item.body}
-                        enabled = {item.item.enabled}
-                        icon = {item.item.icon}
-                        style={item.item.style}
-                        />}
-                    /> 
-            </>
-            <Footer />
+        <Footer />
         </LinearGradient>
     )
 }
