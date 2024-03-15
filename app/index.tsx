@@ -9,26 +9,41 @@ import { MirrorConnectionContext } from "../mirrorStateContext"
 import { Link } from "expo-router"
 import ConnectedDevice from "../components/connectedDevice"
 import { getUserCalendarEvents } from "./_layout"
-import { Event } from "../types"
+import { Event, Reminder } from "../types"
 
 export default function Page() {
     
     const { state } = useContext(MirrorConnectionContext)
     const [events, setEvents] = useState<Event[]>([])
+    const [reminders, setReminders] = useState<Reminder[]>([])
 
     async function getEvents() {
-        const eventsRes = await getUserCalendarEvents()
-        setEvents(eventsRes ?? [])
+        const res = await getUserCalendarEvents()
+        setEvents(res?.events ?? [])
+        setReminders(res?.reminders ?? [])
     }
 
     useEffect(()=>{
         getEvents()
     },[])
+    
     const event = events.length > 0 ? events[0] :
     {
-        title: 'TEST',
-        location: 'TEST',
-        startDate: '2 PM'
+        title: 'No Events',
+        location: ' - ',
+        startDate: ' - '
+    }
+
+    const reminder: Reminder = reminders.length > 0 ? reminders[0] : 
+    {
+        completed: false,
+        startDate: new Date(),
+        dueDate: new Date(),
+        id: '',
+        location: ' - ',
+        notes: ' - ',
+        title: 'No reminders',
+        url: ''
     }
 
     const data = [
@@ -44,6 +59,22 @@ export default function Page() {
             style: styles.halfThumbnailStyle
          },
          {
+            title: 'To-Do List', 
+            body:
+            <>
+                <Text className="text-white">{reminder.title}</Text>
+                <Text className="text-white">{reminder.location}</Text>
+                <Text className="text-white">{
+                typeof reminder.dueDate === 'string' ? 
+                new Date(reminder.dueDate).toLocaleString() :
+                reminder.dueDate?.toLocaleString()
+                }</Text>
+            </>,
+            icon: <FontAwesome5 name = 'square' size={24} color="white"  />,
+            enabled: false,
+            style: styles.halfThumbnailStyle
+         },
+         {
             title: 'Calendar', 
             body:
             <>
@@ -53,21 +84,10 @@ export default function Page() {
             </>,
             icon: <FontAwesome5 name = 'square' size={24} color="white"  />,
             enabled: true,
-            style: styles.halfThumbnailStyle
-         },
-         {
-            title: 'To-Do List', 
-            body:
-            <>
-                <Text className="text-white">COE70B - 011 - LAB</Text>
-                <Text className="text-white">ENG311</Text>
-                <Text className="text-white">2 PM</Text>
-            </>,
-            icon: <FontAwesome5 name = 'square' size={24} color="white"  />,
-            enabled: false,
             style: styles.fullThumbnailStyle
          }
     ]
+
     return (
         <LinearGradient colors={[colors.white, colors.blue[300]]} style = {styles.containerStyle}>
             <Text className="text-black text-3xl font-bold">Hello, Alick.</Text>
@@ -175,7 +195,7 @@ const Thumbnail: React.FC<ThumbNailProps> = ({title, icon, body, enabled, style}
 const styles = StyleSheet.create({
     columnStyle: {marginHorizontal:2, marginVertical:7, alignContent:'center'},
     halfThumbnailStyle: {width:'47%', marginHorizontal:2},
-    fullThumbnailStyle: {width:'100%'},
+    fullThumbnailStyle: {width:'100%', marginVertical:5},
     containerStyle: {flex:1, flexDirection:'column', alignItems:'center', alignContent:'center', width:'100%'}
 })
 

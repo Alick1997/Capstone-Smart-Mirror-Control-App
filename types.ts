@@ -28,3 +28,14 @@ export type Event = {
     startDate: string | Date;
     location: string;
 }
+
+export type Reminder = {
+    completed?: boolean;
+    startDate?: string | Date;
+    dueDate?: string | Date;
+    id?: string;
+    location?: string;
+    notes?: string;
+    title?: string;
+    url?: string;
+}

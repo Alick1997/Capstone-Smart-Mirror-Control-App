@@ -7,21 +7,32 @@ import { manager, requestAllPermissionsForBle } from "../utils/bleManager";
 import { State } from "react-native-ble-plx";
 import * as Location from 'expo-location';
 import * as Calendar from 'expo-calendar';
+import { Platform } from "react-native";
 
 export async function getUserCalendarEvents() {
     try {
         const { status } = await Calendar.requestCalendarPermissionsAsync()
-        const remindersStat = await Calendar.requestRemindersPermissionsAsync()
-        if(status !== 'granted' || remindersStat.status !== 'granted') {
+        if(status !== 'granted') {
             alert('Permission to calendar was denied')
             return
+        }
+        if(Platform.OS === 'ios') {
+            const remindersStat = await Calendar.requestRemindersPermissionsAsync()
+            if(remindersStat.status !== 'granted') {
+                alert('Permission to reminders was denied')
+            return
+            }
         }
         const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT)
         const calendarIds = calendars.map(cal => cal.id)
         const now = new Date()
         const tm = new Date(now)
         tm.setDate(now.getDate() + 1)
-        return await Calendar.getEventsAsync(calendarIds, now,tm )
+        const events = await Calendar.getEventsAsync(calendarIds, now,tm )
+        const reminders = Platform.OS === 'ios' ?
+         await Calendar.getRemindersAsync(calendarIds, Calendar.ReminderStatus.INCOMPLETE, now, tm) :
+         []
+        return {events, reminders}
     } catch(e) {
         console.log(e)
         alert('Error retreiving calendar events')
@@ -108,7 +119,7 @@ export default function MainLayout() {
                     updateMirrorConnectionState(null)
                 })
             return () => {
-                sub()
+                sub.remove()
             }
         }
     },[mirrorState])
